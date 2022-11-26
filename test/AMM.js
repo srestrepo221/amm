@@ -10,7 +10,9 @@ const ether = tokens
 describe('AMM', () => {
   let accounts,
       deployer,
-      liquidityProvider
+      liquidityProvider,
+      investor1,
+      investor2
 
   let token1,
       token2,
@@ -18,22 +20,30 @@ describe('AMM', () => {
 
   beforeEach(async () => {
     // Setup  accounts
-
     accounts = await ethers.getSigners()
     deployer = accounts[0]
     liquidityProvider  = accounts[1]
-
+    investor1 = accounts[2] // will do all the swaps for token1 to recieve token2
+    investor2 = accounts[3]
 
     // Deploy Token
     const Token = await ethers.getContractFactory('Token')
     token1 = await Token.deploy('Dapp University', 'DAPP', '1000000') // 1 Million Tokens
-    token2 = await Token.deploy('Dapp University', 'USD', '1000000') // 1 Million Tokens
+    token2 = await Token.deploy('USD Token', 'USD', '1000000') // 1 Million Tokens
   
     // Send tokens to liquidity provider
     let transaction = await token1.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
     await transaction.wait()
 
     transaction = await token2.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
+    await transaction.wait()
+
+    // Send  tokens to investor1
+    transaction = await token1.connect(deployer).transfer(investor1.address, tokens(100000))
+    await transaction.wait()
+
+    // Send token2 to investor2
+    transaction = await token2.connect(deployer).transfer(investor2.address, tokens(100000))
     await transaction.wait()
 
     //Deploy AMM
@@ -85,7 +95,6 @@ describe('AMM', () => {
 
         // Check pool has 100 total shares
         expect(await amm.totalShares()).to.equal(tokens(100))
-      })
 
         ///////////////////////////////////////
         // LP adds more liquidity
@@ -106,7 +115,6 @@ describe('AMM', () => {
         transaction = await amm.connect(liquidityProvider).addLiquidity(amount, token2Deposit)
         await transaction.wait()
 
-
         // LP should have 50 shares
         expect(await amm.shares(liquidityProvider.addresss)).to.equal(tokens(50))
 
@@ -115,6 +123,25 @@ describe('AMM', () => {
 
         // Poolshould have 150 shares
         expect(await amm.totalShares()).to.equal(tokens(150))
+
+        ///////////////////////////////////////
+        // Investor 1 swaps 
+        //
+
     })
+
+  })
+
 })
+
+
+
+
+
+
+
+
+
+
+
  
