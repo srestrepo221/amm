@@ -6,6 +6,7 @@ const tokens = (n) => {
 }
 
 const ether = tokens
+const shares = ether
 
 describe('AMM', () => {
   let accounts,
@@ -19,18 +20,18 @@ describe('AMM', () => {
       amm
 
   beforeEach(async () => {
-    // Setup  accounts
+    // Setup Accounts
     accounts = await ethers.getSigners()
     deployer = accounts[0]
-    liquidityProvider  = accounts[1]
-    investor1 = accounts[2] // will do all the swaps for token1 to recieve token2
+    liquidityProvider = accounts[1]
+    investor1 = accounts[2]
     investor2 = accounts[3]
 
     // Deploy Token
     const Token = await ethers.getContractFactory('Token')
     token1 = await Token.deploy('Dapp University', 'DAPP', '1000000') // 1 Million Tokens
     token2 = await Token.deploy('USD Token', 'USD', '1000000') // 1 Million Tokens
-  
+
     // Send tokens to liquidity provider
     let transaction = await token1.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
     await transaction.wait()
@@ -38,7 +39,7 @@ describe('AMM', () => {
     transaction = await token2.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
     await transaction.wait()
 
-    // Send  tokens to investor1
+    // Send token1 to investor1
     transaction = await token1.connect(deployer).transfer(investor1.address, tokens(100000))
     await transaction.wait()
 
@@ -46,7 +47,7 @@ describe('AMM', () => {
     transaction = await token2.connect(deployer).transfer(investor2.address, tokens(100000))
     await transaction.wait()
 
-    //Deploy AMM
+    // Deploy AMM
     const AMM = await ethers.getContractFactory('AMM')
     amm = await AMM.deploy(token1.address, token2.address)
   })
@@ -67,71 +68,73 @@ describe('AMM', () => {
 
   })
 
-    describe('Swapping tokens', async () => {
-      let amount, transaction, result
+  describe('Swapping tokens', () => {
+    let amount, transaction, result
 
-      it('facilitates swap', async () => {
-        //Deployer approves 100k tokens
-        amount = tokens(100000)
-        transaction = await token1.connect(deployer).approve(amm.address, amount)
-        await transaction.wait()
+    it('facilitates swaps', async () => {
+      // Deployer approves 100k tokens
+      amount = tokens(100000)
+      transaction = await token1.connect(deployer).approve(amm.address, amount)
+      await transaction.wait()
 
-        transaction = await token2.connect(deployer).approve(amm.address, amount)
-        await transaction.wait()
+      transaction = await token2.connect(deployer).approve(amm.address, amount)
+      await transaction.wait()
 
-        // Deployer adds liquidity
-        transaction = await  amm.connect(deployer).addLiquidity(amount, amount)
-        await transaction.wait()
+      // Deployer adds liquidity
+      transaction = await amm.connect(deployer).addLiquidity(amount, amount)
+      await transaction.wait()
 
-        // Check AMM receives tokens
-        expect(await token1.balanceOf(amm.address)).to.equal(amount)
-        expect(await token2.balanceOf(amm.address)).to.equal(amount)
+      // Check AMM receives tokens
+      expect(await token1.balanceOf(amm.address)).to.equal(amount)
+      expect(await token2.balanceOf(amm.address)).to.equal(amount)
 
-        expect(await amm.token1Balance()).to.equal(amount)
-        expect(await amm.token2Balance()).to.equal(amount)
+      expect(await amm.token1Balance()).to.equal(amount)
+      expect(await amm.token2Balance()).to.equal(amount)
 
-        // Check deployer has 100 shares
-        expect(await amm.shares(deployer.address)).to.equal(tokens(100))
+      // Check deployer has 100 shares
+      expect(await amm.shares(deployer.address)).to.equal(tokens(100)) // use tokens helper to calculate shares
 
-        // Check pool has 100 total shares
-        expect(await amm.totalShares()).to.equal(tokens(100))
+      // Check pool has 100 total shares
+      expect(await amm.totalShares()).to.equal(tokens(100))
 
-        ///////////////////////////////////////
-        // LP adds more liquidity
-        //
 
-        // LP approves 50k tokens 
-        amount = tokens(50000)
-        transaction = await token1.connect(deployer).approve(amm.address, amount)
-        await transaction.wait()
 
-        transaction = await token2.connect(deployer).approve(amm.address, amount)
-        await transaction.wait()
+      /////////////////////////////////////////////////////////////
+      // LP adds more liquidity
+      //
 
-        // Calculate token2 deposit amount
-        let token2Deposit = await amm.calculateToken2Deposit(amount)
+      // LP approves 50k tokens
+      amount = tokens(50000)
+      transaction = await token1.connect(liquidityProvider).approve(amm.address, amount)
+      await transaction.wait()
 
-        // LP adds liquidity
-        transaction = await amm.connect(liquidityProvider).addLiquidity(amount, token2Deposit)
-        await transaction.wait()
+      transaction = await token2.connect(liquidityProvider).approve(amm.address, amount)
+      await transaction.wait()
 
-        // LP should have 50 shares
-        expect(await amm.shares(liquidityProvider.addresss)).to.equal(tokens(50))
+      // Calculate token2 deposit amount
+      let token2Deposit = await amm.calculateToken2Deposit(amount)
 
-        // Deployer should still have 100 shares
-        expect(await amm.shares(deployer.address)).to.equal(tokens(100))
+      // LP adds liquidity
+      transaction = await amm.connect(liquidityProvider).addLiquidity(amount, token2Deposit)
+      await transaction.wait()
 
-        // Poolshould have 150 shares
-        expect(await amm.totalShares()).to.equal(tokens(150))
+      // LP should have 50 shares
+      expect(await amm.shares(liquidityProvider.address)).to.equal(tokens(50))
 
-        ///////////////////////////////////////
-        // Investor 1 swaps 
-        //
+      // Deployer should still have 100 shares
+      expect(await amm.shares(deployer.address)).to.equal(tokens(100))
+
+      // Pool should have 150 shares
+      expect(await amm.totalShares()).to.equal(tokens(150))
+
+
+      /////////////////////////////////////////////////////////////
+      // Investor 1 swaps
+      //
 
     })
 
   })
-
 })
 
 
