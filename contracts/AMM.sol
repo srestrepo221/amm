@@ -16,7 +16,18 @@ contract AMM {
     mapping(address => uint256) public shares;
     uint256 constant PRECISION = 10**18;
 
-   
+    event Swap(
+        address user,
+        address tokenGive,
+        uint256 tokenGiveAmount,
+        address tokenGet,
+        uint256 tokenGetAmount,
+        uint256 token1Balance,
+        uint256 token2Balance,
+        uint256 timestamp
+    );
+
+
     constructor(Token _token1, Token _token2) {
         token1 = _token1;
         token2 = _token2;
@@ -95,6 +106,24 @@ contract AMM {
         require(token2Amount < token2Balance, "swap amount to large");
     }
 
+    // Returns amount of token1 received when swapping token2
+    function calculateToken2Swap(uint256 _token2Amount)
+        public
+        view
+        returns (uint256 token1Amount)
+    {
+        uint256 token2After = token2Balance + _token2Amount;
+        uint256 token1After = K / token2After;
+        token1Amount = token1Balance - token1After;
+
+        // Don't let the pool go to 0
+        if (token1Amount == token1Balance) {
+            token1Amount--;
+        }
+
+        require(token1Amount < token1Balance, "swap amount to large");
+    }
+
     function swapToken1(uint256 _token1Amount)
         external
         returns(uint256 token2Amount)
@@ -107,16 +136,45 @@ contract AMM {
         token1Balance += _token1Amount;
         token2Balance -= token2Amount;
         token2.transfer(msg.sender, token2Amount);
+
+        // Emit an event
+        emit Swap(
+            msg.sender,
+            address(token1),
+            _token1Amount,
+            address(token2),
+            token2Amount,
+            token1Balance,
+            token2Balance,
+            block.timestamp
+        );
+    }
+
+    function swapToken2(uint256 _token2Amount)
+        external
+        returns(uint256 token1Amount)
+    {
+        // Calculate Token 1 Amount
+        token1Amount = calculateToken2Swap(_token2Amount);
+
+        // Do Swap
+        token2.transferFrom(msg.sender, address(this), _token2Amount);
+        token2Balance += _token2Amount;
+        token1Balance -= token1Amount;
+        token1.transfer(msg.sender, token1Amount);
+
+        // Emit an event
+        emit Swap(
+            msg.sender,
+            address(token2),
+            _token2Amount,
+            address(token1),
+            token1Amount,
+            token1Balance,
+            token2Balance,
+            block.timestamp
+        );
+     
     }
 
 }
-
-
-
-
-
-
-
-
-
-
