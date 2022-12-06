@@ -20,6 +20,8 @@ export const provider = createSlice({
 	}
 })
 
+
+
 export const { setProvider, setNetwork, setAccount } = provider.actions;
 
 export default provider.reducer; 
