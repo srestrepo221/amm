@@ -10,7 +10,6 @@ import { loadAccount, loadBalances } from '../store/interactions'
 
 import config from '../config.json';
 
-
 const Navigation = () => {
   const chainId = useSelector(state => state.provider.chainId)
   const account = useSelector(state => state.provider.account)
@@ -30,7 +29,6 @@ const Navigation = () => {
       params: [{ chainId: e.target.value }],
     })
   }
-
   return (
     <Navbar className='my-3' expand="lg">
       <img
@@ -41,6 +39,7 @@ const Navigation = () => {
         className="d-inline-block align-top mx-3"
       />
       <Navbar.Brand href="#">Dapp University AMM</Navbar.Brand>
+      
       <Navbar.Toggle aria-controls="nav" />
       <Navbar.Collapse id="nav" className="justify-content-end">
 
