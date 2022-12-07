@@ -140,8 +140,6 @@ async function main() {
   await transaction.wait()
 
   console.log(`Complete.\n`)
-
-
 }
 
 // We recommend this pattern to be able to use async/await everywhere
