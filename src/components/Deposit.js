@@ -10,7 +10,10 @@ import { ethers } from 'ethers';
 
 import Alert from './Alert'
 
-import { loadBalances, addLiquidity } from '../store/interactions'
+import { 
+	addLiquidity,
+	loadBalances,
+} from '../store/interactions'
 
 const Deposit = () => {
 	const [token1Amount, setToken1Amount] = useState(0)
@@ -49,10 +52,8 @@ const Deposit = () => {
 			const result = await amm.calculateToken1Deposit(_token2Amount)
 			const _token1Amount = ethers.utils.formatUnits(result.toString(), 'ether')
 
-			// Set Token 1 Amount
-			setToken1Amount(_token1Amount)
+			setToken1Amount(_token1Amount) // Set Token 1 Amount
 		}
-		
 	}
 
 	const depositHandler = async (e) => {
@@ -74,7 +75,6 @@ const Deposit = () => {
 
 		setShowAlert(true)
 	}
-
 
 	return (
 		<div>
@@ -127,9 +127,7 @@ const Deposit = () => {
 		 	) : ( 
 		 		<Button type='submit'>Deposit</Button>
 		 	)}
-		 	
 		 </Row>
-
 		</Form>
 
 		 ) : (

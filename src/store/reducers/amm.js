@@ -11,6 +11,11 @@ export const amm = createSlice({
 			isSuccess: false,
 			transactionHash: null
 		},
+		withdrawing: {
+			isWithdrawing: false,
+			isSuccess: false,
+			transactionHash: null
+		},
 		swapping: {
 			isSwapping: false,
 			isSuccess: false,
@@ -35,9 +40,24 @@ export const amm = createSlice({
 			state.depositing.transactionHash = action.payload
 		},
 		depositFail: (state, action) => {
-			state.swapping.isDepositing = false
-			state.swapping.isSuccess = false
-			state.swapping.transactionHash = null
+			state.depositing.isDepositing = false
+			state.depositing.isSuccess = false
+			state.depositing.transactionHash = null
+		},
+		withdrawRequest: (state, action) => {
+			state.withdrawing.isWithdrawing = true
+			state.withdrawing.isSuccess = false
+			state.withdrawing.transactionHash = null
+		},
+		withdrawSuccess: (state, action) => {
+			state.withdrawing.isWithdrawing = false
+			state.withdrawing.isSuccess = true
+			state.withdrawing.transactionHash = action.payload
+		},
+		withdrawFail: (state, action) => {
+			state.withdrawing.isWithdrawing = false
+			state.withdrawing.isSuccess = false
+			state.withdrawing.transactionHash = null
 		},
 		swapRequest: (state, action) => {
 			state.swapping.isSwapping = true
@@ -63,6 +83,9 @@ export const {
 	depositRequest,
 	depositSuccess, 
 	depositFail,
+	withdrawRequest,
+	withdrawSuccess, 
+	withdrawFail,
 	swapRequest,
 	swapSuccess, 
 	swapFail 
