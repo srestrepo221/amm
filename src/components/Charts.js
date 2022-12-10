@@ -1,5 +1,6 @@
 import { useSelector, useDispatch } from  'react-redux'
 import Table from 'react-bootstrap/Table';
+import Chart from 'react-apexcharts';
 import { ethers } from 'ethers';
 
 import { useEffect } from 'react'
@@ -9,6 +10,23 @@ import { useEffect } from 'react'
 import { 
 	loadAllSwaps
 } from '../store/interactions'
+
+const STATE = {
+	options: {
+	chart:  {
+		id: "basic-bar"
+	},
+	xaxis: {
+		categories: [1991,1992,1993,1994,1995,1996]
+	}
+},
+	series : [
+		{
+			name: "series-1",
+			data:[30,40,45,50,55,60]
+		}
+	]
+};
 
 const Charts = () => {
 	const provider = useSelector(state => state.provider.connection)
@@ -28,7 +46,17 @@ const Charts = () => {
 	}, [provider, amm, dispatch])
 
 	return (
-		<Table striped bordered={1} hover>
+		<div>
+			<Chart
+				options={STATE.options}
+				series={STATE.series}
+				type="bar"
+				width="500"
+			/>
+
+			<hr />
+
+			<Table striped bordered={1} hover>
 			<thead>
 				<tr>
 					<th>Transaction Hash</th>
@@ -53,23 +81,37 @@ const Charts = () => {
 
 						new Date(Number(swap.args.timestamp.toString() + '000'))
 						.toLocaleDateString(
-						undefined, 
-						{
+							undefined, 
+							{
 							year: 'numeric',
 							month: 'long',
 							day: 'numeric',
 							hour: 'numeric',
 							minute: 'numeric',
 							second: 'numeric'
-						})
-
+							}
+						)
 					}</td>
 				</tr>
 				))}
 				
 			</tbody>
 		</Table>
+		</div>
+		
 	);
 }
 
 export default Charts;
+
+
+
+
+
+
+
+
+
+
+
+
